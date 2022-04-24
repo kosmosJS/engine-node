@@ -42,6 +42,7 @@ type EventLoop struct {
 
 func NewEventLoop(opts ...Option) *EventLoop {
 	vm := engine.New()
+	vm.SetRandSource(newRandSource())
 
 	loop := &EventLoop{
 		vm:            vm,
@@ -84,6 +85,14 @@ func (loop *EventLoop) schedule(call engine.FunctionCall, repeating bool) engine
 		}
 	}
 	return nil
+}
+
+func newRandSource() engine.RandSource {
+	var seed int64
+	if err := binary.Read(crand.Reader, binary.LittleEndian, &seed); err != nil {
+		panic(fmt.Errorf("Could not read random bytes: %v", err))
+	}
+	return rand.New(rand.NewSource(seed)).Float64
 }
 
 func (loop *EventLoop) setTimeout(call engine.FunctionCall) engine.Value {
