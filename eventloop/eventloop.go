@@ -169,8 +169,9 @@ func (loop *EventLoop) setRunning() {
 // If the loop is already started it will panic.
 func (loop *EventLoop) Run(fn func(*engine.Runtime)) {
 	loop.setRunning()
-	fn(loop.vm)
+	err := fn(loop.vm)
 	loop.run(false)
+	return err
 }
 
 // Start the event loop in the background. The loop continues to run until Stop() is called.
