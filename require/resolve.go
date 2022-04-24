@@ -6,7 +6,7 @@ import (
 	"path"
 	"strings"
 
-	js "github.com/dop251/goja"
+	js "github.com/kosmosJS/engine"
 )
 
 // NodeJS module search algorithm described by

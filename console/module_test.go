@@ -3,12 +3,12 @@ package console
 import (
 	"testing"
 
-	"github.com/dop251/goja"
-	"github.com/dop251/goja_nodejs/require"
+	"github.com/kosmosJS/engine"
+	"github.com/kosmosJS/engine-node/require"
 )
 
 func TestConsole(t *testing.T) {
-	vm := goja.New()
+	vm := engine.New()
 
 	new(require.Registry).Enable(vm)
 	Enable(vm)
@@ -31,7 +31,7 @@ func TestConsole(t *testing.T) {
 }
 
 func TestConsoleWithPrinter(t *testing.T) {
-	vm := goja.New()
+	vm := engine.New()
 
 	var lastPrint string
 	printer := PrinterFunc(func(s string) {

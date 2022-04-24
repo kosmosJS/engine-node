@@ -4,9 +4,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dop251/goja"
-	"github.com/dop251/goja_nodejs/console"
-	"github.com/dop251/goja_nodejs/require"
+	"github.com/kosmosJS/engine"
+	"github.com/kosmosJS/engine-node/console"
+	"github.com/kosmosJS/engine-node/require"
 )
 
 type job struct {
@@ -26,7 +26,7 @@ type Interval struct {
 }
 
 type EventLoop struct {
-	vm       *goja.Runtime
+	vm       *engine.Runtime
 	jobChan  chan func()
 	jobCount int32
 	canRun   bool
@@ -38,18 +38,16 @@ type EventLoop struct {
 	stopCond *sync.Cond
 	running  bool
 
-	enableConsole bool
 }
 
 func NewEventLoop(opts ...Option) *EventLoop {
-	vm := goja.New()
+	vm := engine.New()
 
 	loop := &EventLoop{
 		vm:            vm,
 		jobChan:       make(chan func()),
 		wakeup:        make(chan struct{}, 1),
 		stopCond:      sync.NewCond(&sync.Mutex{}),
-		enableConsole: true,
 	}
 
 	for _, opt := range opts {
@@ -57,9 +55,8 @@ func NewEventLoop(opts ...Option) *EventLoop {
 	}
 
 	new(require.Registry).Enable(vm)
-	if loop.enableConsole {
-		console.Enable(vm)
-	}
+	console.Enable(vm)
+
 	vm.Set("setTimeout", loop.setTimeout)
 	vm.Set("setInterval", loop.setInterval)
 	vm.Set("clearTimeout", loop.clearTimeout)
@@ -70,20 +67,11 @@ func NewEventLoop(opts ...Option) *EventLoop {
 
 type Option func(*EventLoop)
 
-// EnableConsole controls whether the "console" module is loaded into
-// the runtime used by the loop.  By default, loops are created with
-// the "console" module loaded, pass EnableConsole(false) to
-// NewEventLoop to disable this behavior.
-func EnableConsole(enableConsole bool) Option {
-	return func(loop *EventLoop) {
-		loop.enableConsole = enableConsole
-	}
-}
 
-func (loop *EventLoop) schedule(call goja.FunctionCall, repeating bool) goja.Value {
-	if fn, ok := goja.AssertFunction(call.Argument(0)); ok {
+func (loop *EventLoop) schedule(call engine.FunctionCall, repeating bool) engine.Value {
+	if fn, ok := engine.AssertFunction(call.Argument(0)); ok {
 		delay := call.Argument(1).ToInteger()
-		var args []goja.Value
+		var args []engine.Value
 		if len(call.Arguments) > 2 {
 			args = call.Arguments[2:]
 		}
@@ -98,21 +86,21 @@ func (loop *EventLoop) schedule(call goja.FunctionCall, repeating bool) goja.Val
 	return nil
 }
 
-func (loop *EventLoop) setTimeout(call goja.FunctionCall) goja.Value {
+func (loop *EventLoop) setTimeout(call engine.FunctionCall) engine.Value {
 	return loop.schedule(call, false)
 }
 
-func (loop *EventLoop) setInterval(call goja.FunctionCall) goja.Value {
+func (loop *EventLoop) setInterval(call engine.FunctionCall) engine.Value {
 	return loop.schedule(call, true)
 }
 
 // SetTimeout schedules to run the specified function in the context
 // of the loop as soon as possible after the specified timeout period.
 // SetTimeout returns a Timer which can be passed to ClearTimeout.
-// The instance of goja.Runtime that is passed to the function and any Values derived
+// The instance of engine.Runtime that is passed to the function and any Values derived
 // from it must not be used outside of the function. SetTimeout is
 // safe to call inside or outside of the loop.
-func (loop *EventLoop) SetTimeout(fn func(*goja.Runtime), timeout time.Duration) *Timer {
+func (loop *EventLoop) SetTimeout(fn func(*engine.Runtime), timeout time.Duration) *Timer {
 	t := loop.addTimeout(func() { fn(loop.vm) }, timeout)
 	loop.addAuxJob(func() {
 		loop.jobCount++
@@ -131,11 +119,11 @@ func (loop *EventLoop) ClearTimeout(t *Timer) {
 // SetInterval schedules to repeatedly run the specified function in
 // the context of the loop as soon as possible after every specified
 // timeout period.  SetInterval returns an Interval which can be
-// passed to ClearInterval. The instance of goja.Runtime that is passed to the
+// passed to ClearInterval. The instance of engine.Runtime that is passed to the
 // function and any Values derived from it must not be used outside of
 // the function. SetInterval is safe to call inside or outside of the
 // loop.
-func (loop *EventLoop) SetInterval(fn func(*goja.Runtime), timeout time.Duration) *Interval {
+func (loop *EventLoop) SetInterval(fn func(*engine.Runtime), timeout time.Duration) *Interval {
 	i := loop.addInterval(func() { fn(loop.vm) }, timeout)
 	loop.addAuxJob(func() {
 		loop.jobCount++
@@ -162,11 +150,11 @@ func (loop *EventLoop) setRunning() {
 
 // Run calls the specified function, starts the event loop and waits until there are no more delayed jobs to run
 // after which it stops the loop and returns.
-// The instance of goja.Runtime that is passed to the function and any Values derived from it must not be used outside
+// The instance of engine.Runtime that is passed to the function and any Values derived from it must not be used outside
 // of the function.
 // Do NOT use this function while the loop is already running. Use RunOnLoop() instead.
 // If the loop is already started it will panic.
-func (loop *EventLoop) Run(fn func(*goja.Runtime)) {
+func (loop *EventLoop) Run(fn func(*engine.Runtime)) {
 	loop.setRunning()
 	fn(loop.vm)
 	loop.run(false)
@@ -198,9 +186,9 @@ func (loop *EventLoop) Stop() {
 
 // RunOnLoop schedules to run the specified function in the context of the loop as soon as possible.
 // The order of the runs is preserved (i.e. the functions will be called in the same order as calls to RunOnLoop())
-// The instance of goja.Runtime that is passed to the function and any Values derived from it must not be used outside
+// The instance of engine.Runtime that is passed to the function and any Values derived from it must not be used outside
 // of the function. It is safe to call inside or outside of the loop.
-func (loop *EventLoop) RunOnLoop(fn func(*goja.Runtime)) {
+func (loop *EventLoop) RunOnLoop(fn func(*engine.Runtime)) {
 	loop.addAuxJob(func() { fn(loop.vm) })
 }
 

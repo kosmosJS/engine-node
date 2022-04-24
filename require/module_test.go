@@ -10,7 +10,7 @@ import (
 	"path"
 	"testing"
 
-	js "github.com/dop251/goja"
+	js "github.com/kosmosJS/engine"
 )
 
 func mapFileSystemSourceLoader(files map[string]string, t *testing.T) SourceLoader {
@@ -365,7 +365,7 @@ func TestSourceMapLoader(t *testing.T) {
 }
 
 func testsetup() (string, func(), error) {
-	name, err := ioutil.TempDir("", "goja-nodejs-require-test")
+	name, err := ioutil.TempDir("", "engine-nodejs-require-test")
 	if err != nil {
 		return "", nil, err
 	}

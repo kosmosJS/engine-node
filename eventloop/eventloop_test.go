@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dop251/goja"
+	"github.com/kosmosJS/engine"
 )
 
 func TestRun(t *testing.T) {
@@ -19,11 +19,11 @@ func TestRun(t *testing.T) {
 	`
 
 	loop := NewEventLoop()
-	prg, err := goja.Compile("main.js", SCRIPT, false)
+	prg, err := engine.Compile("main.js", SCRIPT, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	loop.Run(func(vm *goja.Runtime) {
+	loop.Run(func(vm *engine.Runtime) {
 		vm.RunProgram(prg)
 	})
 }
@@ -37,7 +37,7 @@ func TestStart(t *testing.T) {
 	console.log("Started");
 	`
 
-	prg, err := goja.Compile("main.js", SCRIPT, false)
+	prg, err := engine.Compile("main.js", SCRIPT, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +45,7 @@ func TestStart(t *testing.T) {
 	loop := NewEventLoop()
 	loop.Start()
 
-	loop.RunOnLoop(func(vm *goja.Runtime) {
+	loop.RunOnLoop(func(vm *engine.Runtime) {
 		vm.RunProgram(prg)
 	})
 
@@ -67,11 +67,11 @@ func TestInterval(t *testing.T) {
 	`
 
 	loop := NewEventLoop()
-	prg, err := goja.Compile("main.js", SCRIPT, false)
+	prg, err := engine.Compile("main.js", SCRIPT, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	loop.Run(func(vm *goja.Runtime) {
+	loop.Run(func(vm *engine.Runtime) {
 		vm.RunProgram(prg)
 	})
 }
@@ -79,61 +79,13 @@ func TestInterval(t *testing.T) {
 func TestRunNoSchedule(t *testing.T) {
 	loop := NewEventLoop()
 	fired := false
-	loop.Run(func(vm *goja.Runtime) { // should not hang
+	loop.Run(func(vm *engine.Runtime) { // should not hang
 		fired = true
 		// do not schedule anything
 	})
 
 	if !fired {
 		t.Fatal("Not fired")
-	}
-}
-
-func TestRunWithConsole(t *testing.T) {
-	const SCRIPT = `
-	console.log("Started");
-	`
-
-	loop := NewEventLoop()
-	prg, err := goja.Compile("main.js", SCRIPT, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	loop.Run(func(vm *goja.Runtime) {
-		_, err = vm.RunProgram(prg)
-	})
-	if err != nil {
-		t.Fatal("Call to console.log generated an error", err)
-	}
-
-	loop = NewEventLoop(EnableConsole(true))
-	prg, err = goja.Compile("main.js", SCRIPT, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	loop.Run(func(vm *goja.Runtime) {
-		_, err = vm.RunProgram(prg)
-	})
-	if err != nil {
-		t.Fatal("Call to console.log generated an error", err)
-	}
-}
-
-func TestRunNoConsole(t *testing.T) {
-	const SCRIPT = `
-	console.log("Started");
-	`
-
-	loop := NewEventLoop(EnableConsole(false))
-	prg, err := goja.Compile("main.js", SCRIPT, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	loop.Run(func(vm *goja.Runtime) {
-		_, err = vm.RunProgram(prg)
-	})
-	if err == nil {
-		t.Fatal("Call to console.log did not generate an error", err)
 	}
 }
 
@@ -151,12 +103,12 @@ func TestClearIntervalRace(t *testing.T) {
 	`
 
 	loop := NewEventLoop()
-	prg, err := goja.Compile("main.js", SCRIPT, false)
+	prg, err := engine.Compile("main.js", SCRIPT, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// Should not hang
-	loop.Run(func(vm *goja.Runtime) {
+	loop.Run(func(vm *engine.Runtime) {
 		vm.Set("sleep", func(ms int) {
 			<-time.After(time.Duration(ms) * time.Millisecond)
 		})
@@ -168,10 +120,10 @@ func TestNativeTimeout(t *testing.T) {
 	t.Parallel()
 	fired := false
 	loop := NewEventLoop()
-	loop.SetTimeout(func(*goja.Runtime) {
+	loop.SetTimeout(func(*engine.Runtime) {
 		fired = true
 	}, 1*time.Second)
-	loop.Run(func(*goja.Runtime) {
+	loop.Run(func(*engine.Runtime) {
 		// do not schedule anything
 	})
 	if !fired {
@@ -183,13 +135,13 @@ func TestNativeClearTimeout(t *testing.T) {
 	t.Parallel()
 	fired := false
 	loop := NewEventLoop()
-	timer := loop.SetTimeout(func(*goja.Runtime) {
+	timer := loop.SetTimeout(func(*engine.Runtime) {
 		fired = true
 	}, 2*time.Second)
-	loop.SetTimeout(func(*goja.Runtime) {
+	loop.SetTimeout(func(*engine.Runtime) {
 		loop.ClearTimeout(timer)
 	}, 1*time.Second)
-	loop.Run(func(*goja.Runtime) {
+	loop.Run(func(*engine.Runtime) {
 		// do not schedule anything
 	})
 	if fired {
@@ -202,14 +154,14 @@ func TestNativeInterval(t *testing.T) {
 	count := 0
 	loop := NewEventLoop()
 	var i *Interval
-	i = loop.SetInterval(func(*goja.Runtime) {
+	i = loop.SetInterval(func(*engine.Runtime) {
 		t.Log("tick")
 		count++
 		if count > 2 {
 			loop.ClearInterval(i)
 		}
 	}, 1*time.Second)
-	loop.Run(func(*goja.Runtime) {
+	loop.Run(func(*engine.Runtime) {
 		// do not schedule anything
 	})
 	if count != 3 {
@@ -221,8 +173,8 @@ func TestNativeClearInterval(t *testing.T) {
 	t.Parallel()
 	count := 0
 	loop := NewEventLoop()
-	loop.Run(func(*goja.Runtime) {
-		i := loop.SetInterval(func(*goja.Runtime) {
+	loop.Run(func(*engine.Runtime) {
+		i := loop.SetInterval(func(*engine.Runtime) {
 			t.Log("tick")
 			count++
 		}, 500*time.Millisecond)
@@ -239,7 +191,7 @@ func TestSetTimeoutConcurrent(t *testing.T) {
 	loop := NewEventLoop()
 	loop.Start()
 	ch := make(chan struct{}, 1)
-	loop.SetTimeout(func(*goja.Runtime) {
+	loop.SetTimeout(func(*engine.Runtime) {
 		ch <- struct{}{}
 	}, 100*time.Millisecond)
 	<-ch
@@ -250,7 +202,7 @@ func TestClearTimeoutConcurrent(t *testing.T) {
 	t.Parallel()
 	loop := NewEventLoop()
 	loop.Start()
-	timer := loop.SetTimeout(func(*goja.Runtime) {
+	timer := loop.SetTimeout(func(*engine.Runtime) {
 	}, 100*time.Millisecond)
 	loop.ClearTimeout(timer)
 	loop.Stop()
@@ -264,7 +216,7 @@ func TestClearIntervalConcurrent(t *testing.T) {
 	loop := NewEventLoop()
 	loop.Start()
 	ch := make(chan struct{}, 1)
-	i := loop.SetInterval(func(*goja.Runtime) {
+	i := loop.SetInterval(func(*engine.Runtime) {
 		ch <- struct{}{}
 	}, 500*time.Millisecond)
 
@@ -290,7 +242,7 @@ func TestRunOnStoppedLoop(t *testing.T) {
 	}()
 	go func() {
 		for atomic.LoadInt32(&failed) == 0 {
-			loop.RunOnLoop(func(*goja.Runtime) {
+			loop.RunOnLoop(func(*engine.Runtime) {
 				if !loop.canRun {
 					atomic.StoreInt32(&failed, 1)
 					close(done)
@@ -322,17 +274,17 @@ func TestPromise(t *testing.T) {
 	`
 
 	loop := NewEventLoop()
-	prg, err := goja.Compile("main.js", SCRIPT, false)
+	prg, err := engine.Compile("main.js", SCRIPT, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	loop.Run(func(vm *goja.Runtime) {
+	loop.Run(func(vm *engine.Runtime) {
 		_, err = vm.RunProgram(prg)
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	loop.Run(func(vm *goja.Runtime) {
+	loop.Run(func(vm *engine.Runtime) {
 		result := vm.Get("result")
 		if !result.SameAs(vm.ToValue("passed")) {
 			err = fmt.Errorf("unexpected result: %v", result)
@@ -354,7 +306,7 @@ func TestPromiseNative(t *testing.T) {
 	`
 
 	loop := NewEventLoop()
-	prg, err := goja.Compile("main.js", SCRIPT, false)
+	prg, err := engine.Compile("main.js", SCRIPT, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -362,7 +314,7 @@ func TestPromiseNative(t *testing.T) {
 	loop.Start()
 	defer loop.Stop()
 
-	loop.RunOnLoop(func(vm *goja.Runtime) {
+	loop.RunOnLoop(func(vm *engine.Runtime) {
 		vm.Set("done", func() {
 			ch <- nil
 		})
@@ -375,7 +327,7 @@ func TestPromiseNative(t *testing.T) {
 		}
 		go func() {
 			time.Sleep(500 * time.Millisecond)
-			loop.RunOnLoop(func(*goja.Runtime) {
+			loop.RunOnLoop(func(*engine.Runtime) {
 				resolve("passed")
 			})
 		}()
@@ -384,7 +336,7 @@ func TestPromiseNative(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	loop.RunOnLoop(func(vm *goja.Runtime) {
+	loop.RunOnLoop(func(vm *engine.Runtime) {
 		result := vm.Get("result")
 		if !result.SameAs(vm.ToValue("passed")) {
 			ch <- fmt.Errorf("unexpected result: %v", result)

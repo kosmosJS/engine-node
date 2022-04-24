@@ -4,24 +4,24 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/dop251/goja"
-	"github.com/dop251/goja_nodejs/require"
+	"github.com/kosmosJS/engine"
+	"github.com/kosmosJS/engine-node/require"
 )
 
 func TestUtil_Format(t *testing.T) {
-	vm := goja.New()
+	vm := engine.New()
 	util := New(vm)
 
 	var b bytes.Buffer
-	util.Format(&b, "Test: %% %д %s %d, %j", vm.ToValue("string"), vm.ToValue(42), vm.NewObject())
+	util.Format(&b, "Test: %% %ะด %s %d, %j", vm.ToValue("string"), vm.ToValue(42), vm.NewObject())
 
-	if res := b.String(); res != "Test: % %д string 42, {}" {
+	if res := b.String(); res != "Test: % %ะด string 42, {}" {
 		t.Fatalf("Unexpected result: '%s'", res)
 	}
 }
 
 func TestUtil_Format_NoArgs(t *testing.T) {
-	vm := goja.New()
+	vm := engine.New()
 	util := New(vm)
 
 	var b bytes.Buffer
@@ -33,7 +33,7 @@ func TestUtil_Format_NoArgs(t *testing.T) {
 }
 
 func TestUtil_Format_LessArgs(t *testing.T) {
-	vm := goja.New()
+	vm := engine.New()
 	util := New(vm)
 
 	var b bytes.Buffer
@@ -45,7 +45,7 @@ func TestUtil_Format_LessArgs(t *testing.T) {
 }
 
 func TestUtil_Format_MoreArgs(t *testing.T) {
-	vm := goja.New()
+	vm := engine.New()
 	util := New(vm)
 
 	var b bytes.Buffer
@@ -57,11 +57,11 @@ func TestUtil_Format_MoreArgs(t *testing.T) {
 }
 
 func TestJSNoArgs(t *testing.T) {
-	vm := goja.New()
+	vm := engine.New()
 	new(require.Registry).Enable(vm)
 
-	if util, ok := require.Require(vm, "util").(*goja.Object); ok {
-		if format, ok := goja.AssertFunction(util.Get("format")); ok {
+	if util, ok := require.Require(vm, "util").(*engine.Object); ok {
+		if format, ok := engine.AssertFunction(util.Get("format")); ok {
 			res, err := format(util)
 			if err != nil {
 				t.Fatal(err)
