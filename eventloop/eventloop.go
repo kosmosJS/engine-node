@@ -44,7 +44,7 @@ type EventLoop struct {
 
 }
 
-func NewEventLoop(opts ...Option) *EventLoop {
+func NewEventLoop(fn func()) *EventLoop {
 	vm := engine.New()
 	vm.SetRandSource(newRandSource())
 
@@ -55,12 +55,10 @@ func NewEventLoop(opts ...Option) *EventLoop {
 		stopCond:      sync.NewCond(&sync.Mutex{}),
 	}
 
-	for _, opt := range opts {
-		opt(loop)
-	}
-
 	new(require.Registry).Enable(vm)
 	console.Enable(vm)
+
+	fn()
 
 	vm.Set("setTimeout", loop.setTimeout)
 	vm.Set("setInterval", loop.setInterval)
