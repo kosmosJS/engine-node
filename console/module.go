@@ -1,7 +1,7 @@
 package console
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/kosmosJS/engine"
 	"github.com/kosmosJS/engine-node/require"
@@ -28,7 +28,7 @@ func (p PrinterFunc) Warn(s string) { p(s) }
 
 func (p PrinterFunc) Error(s string) { p(s) }
 
-var defaultPrinter Printer = PrinterFunc(func(s string) { log.Print(s) })
+var defaultPrinter Printer = PrinterFunc(func(s string) { fmt.Println(s) })
 
 func (c *Console) log(p func(string)) func(engine.FunctionCall) engine.Value {
 	return func(call engine.FunctionCall) engine.Value {
