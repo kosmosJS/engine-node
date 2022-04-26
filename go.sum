@@ -3,8 +3,6 @@ github.com/dlclark/regexp2 v1.4.1-0.20201116162257-a2a8dda75c91 h1:Izz0+t1Z5nI16
 github.com/dlclark/regexp2 v1.4.1-0.20201116162257-a2a8dda75c91/go.mod h1:2pZnwuY/m+8K6iRw6wQdMtk+rH5tNGR1i55kozfMjCc=
 github.com/go-sourcemap/sourcemap v2.1.3+incompatible h1:W1iEw64niKVGogNgBN3ePyLFfuisuzeidWPMPWmECqU=
 github.com/go-sourcemap/sourcemap v2.1.3+incompatible/go.mod h1:F8jJfvm2KbVjc5NqelyYJmf/v5J0dwNLS2mL4sNA1Jg=
-github.com/kosmosJS/engine v0.0.0-20220424045731-7f4977dc5cf4 h1:L/TbRx6qOB6zPIlXp6VqvvbrQjtj5ZkqfpPDUpRPQvQ=
-github.com/kosmosJS/engine v0.0.0-20220424045731-7f4977dc5cf4/go.mod h1:5e9dMYNOmB0tsPKfVXLrR4Udzo1oj2KMcHCK0XoptVk=
 github.com/kosmosJS/engine v0.0.0-20220424180524-241d93cbe6db h1:RtcMgiaJZ9C7ARfRXI4K2DsMnvFYHzEAdF+E/YKGsbw=
 github.com/kosmosJS/engine v0.0.0-20220424180524-241d93cbe6db/go.mod h1:5e9dMYNOmB0tsPKfVXLrR4Udzo1oj2KMcHCK0XoptVk=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
